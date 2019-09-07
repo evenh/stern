@@ -16,6 +16,7 @@ package stern
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"hash/fnv"
@@ -26,7 +27,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes/typed/core/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -82,7 +83,7 @@ func determineColor(podName string) (podColor, containerColor *color.Color) {
 }
 
 // Start starts tailing
-func (t *Tail) Start(ctx context.Context, i v1.PodInterface) {
+func (t *Tail) Start(ctx context.Context, i v1.PodInterface, logC chan<- string) {
 	t.podColor, t.containerColor = determineColor(t.PodName)
 
 	go func() {
@@ -90,9 +91,9 @@ func (t *Tail) Start(ctx context.Context, i v1.PodInterface) {
 		p := t.podColor.SprintFunc()
 		c := t.containerColor.SprintFunc()
 		if t.Options.Namespace {
-			fmt.Fprintf(os.Stderr, "%s %s %s › %s\n", g("+"), p(t.Namespace), p(t.PodName), c(t.ContainerName))
+			logC <- fmt.Sprintf("%s %s %s › %s\n", g("+"), p(t.Namespace), p(t.PodName), c(t.ContainerName))
 		} else {
-			fmt.Fprintf(os.Stderr, "%s %s › %s\n", g("+"), p(t.PodName), c(t.ContainerName))
+			logC <- fmt.Sprintf("%s %s › %s\n", g("+"), p(t.PodName), c(t.ContainerName))
 		}
 
 		req := i.GetLogs(t.PodName, &corev1.PodLogOptions{
@@ -140,12 +141,12 @@ func (t *Tail) Start(ctx context.Context, i v1.PodInterface) {
 						break
 					}
 				}
- 				if !matches {
+				if !matches {
 					continue OUTER
 				}
 			}
 
-			t.Print(str)
+			logC <- t.Print(str)
 		}
 	}()
 
@@ -168,7 +169,7 @@ func (t *Tail) Close() {
 }
 
 // Print prints a color coded log message with the pod and container names
-func (t *Tail) Print(msg string) {
+func (t *Tail) Print(msg string) string {
 	vm := Log{
 		Message:        msg,
 		Namespace:      t.Namespace,
@@ -177,10 +178,15 @@ func (t *Tail) Print(msg string) {
 		PodColor:       t.podColor,
 		ContainerColor: t.containerColor,
 	}
-	err := t.tmpl.Execute(os.Stdout, vm)
+
+	var buf bytes.Buffer
+	err := t.tmpl.Execute(&buf, vm)
 	if err != nil {
 		os.Stderr.WriteString(fmt.Sprintf("expanding template failed: %s", err))
+		return ""
 	}
+
+	return buf.String()
 }
 
 // Log is the object which will be used together with the template to generate

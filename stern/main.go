@@ -16,6 +16,8 @@ package stern
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/wercker/stern/kubernetes"
@@ -49,6 +51,18 @@ func Run(ctx context.Context, config *Config) error {
 	}
 
 	tails := make(map[string]*Tail)
+	logC := make(chan string, 1024)
+
+	go func() {
+		for {
+			select {
+			case str := <-logC:
+				fmt.Fprintf(os.Stdout, str)
+			case <-ctx.Done():
+				break
+			}
+		}
+	}()
 
 	go func() {
 		for p := range added {
@@ -67,7 +81,7 @@ func Run(ctx context.Context, config *Config) error {
 			})
 			tails[id] = tail
 
-			tail.Start(ctx, clientset.CoreV1().Pods(p.Namespace))
+			tail.Start(ctx, clientset.CoreV1().Pods(p.Namespace), logC)
 		}
 	}()
 
