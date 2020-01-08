@@ -1,4 +1,4 @@
-module github.com/wercker/stern
+module github.com/evenh/stern
 
 go 1.12.9
 

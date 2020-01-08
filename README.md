@@ -1,7 +1,5 @@
 # stern
 
-[![wercker status](https://app.wercker.com/status/fb1ed340ffed75c22dc301c38ab0893c/s/master "wercker status")](https://app.wercker.com/project/byKey/fb1ed340ffed75c22dc301c38ab0893c)
-
 Stern allows you to `tail` multiple pods on Kubernetes and multiple containers
 within the pod. Each result is color coded for quicker debugging.
 
@@ -14,20 +12,15 @@ When a pod contains multiple containers Stern can tail all of them too without
 having to do this manually for each one. Simply specify the `container` flag to
 limit what containers to show. By default all containers are listened to.
 
+## Fork status
+
+This fork incorporates patches from [linkerd](https://github.com/linkerd/stern) and updates the Kubernetes API so usage with Azure AD works without having to continuously reauthenticate.
+
 ## Installation
 
-If you don't want to build from source go grab a [binary release](https://github.com/wercker/stern/releases)
-
 ```
-git clone https://github.com/wercker/stern.git && cd stern
-go install
-```
-
-### Homebrew
-
-On macOS, you can also install Stern using [Homebrew](https://brew.sh/):
-```
-brew install stern
+git clone https://github.com/evenh/stern.git
+go build -mod=vendor -o ~/bin/stern
 ```
 
 ## Usage
@@ -188,5 +181,4 @@ source <(stern --completion=zsh)
 
 ## Contributing to this repository
 
-Oracle welcomes contributions to this repository from anyone.  Please see
-[CONTRIBUTING](CONTRIBUTING.md) for details.
+Contributions to this fork is welcome from anyone.
