@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"github.com/wercker/stern/kubernetes"
+	"github.com/evenh/stern/kubernetes"
 )
 
 // Run starts the main run loop
