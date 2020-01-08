@@ -13,10 +13,10 @@ jobs:
     name: Go unit tests
     runs-on: ubuntu-18.04
     container:
-      image: golang:1.12.9
+      image: golang:1.13.5
     steps:
     - name: Checkout code
       uses: actions/checkout@v1
     - name: Go unit tests
       run: |
-        go test -cover -race -v -mod=readonly ./...
+        go test -cover -race -v -mod=vendor ./...
