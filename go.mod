@@ -1,6 +1,6 @@
 module github.com/evenh/stern
 
-go 1.12.9
+go 1.13
 
 require (
 	github.com/fatih/color v0.0.0-20180516100307-2d684516a886
